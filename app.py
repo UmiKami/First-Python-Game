@@ -1,7 +1,14 @@
-import enum
+import math
 from random import randint
 import pygame
 from sys import exit
+
+def display_score():
+    currentTime = pygame.time.get_ticks() / 1000 - startTime
+    score_surf = test_font.render(f'Score: {currentTime:.0f}', True, '#2a0878')
+    score_rect = score_surf.get_rect(center=(400, 50))
+    screen.blit(score_surf, score_rect)
+
 
 pygame.init()
 screen = pygame.display.set_mode((800, 400))
@@ -11,9 +18,6 @@ test_font = pygame.font.Font('./font/Pixeltype.ttf', 50)
 
 sky_surf = pygame.image.load('./graphics/Sky.png').convert_alpha()
 ground_surf = pygame.image.load('./graphics/ground.png').convert_alpha()
-
-# score_surf = test_font.render('Hello World!', True, '#2a0878')
-# score_rect = score_surf.get_rect(center=(400, 50))
 
 snail_surf = pygame.image.load("./graphics/snail/snail1.png").convert_alpha()
 snail_rect = snail_surf.get_rect(midbottom=(810, 300))
@@ -29,6 +33,7 @@ restartBrn_rect = restartBtn_surf.get_rect(center=(400, 200))
 player_gravity = 0
 
 isGameOver = False
+startTime = 0
 
 while True:
     for i, event in enumerate(pygame.event.get()):
@@ -45,31 +50,32 @@ while True:
         else:
             if event.type == pygame.MOUSEBUTTONDOWN and restartBrn_rect.collidepoint(event.pos) and event.button == 1:
                 isGameOver = False
+                startTime = pygame.time.get_ticks() / 1000
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE: 
                 isGameOver = False
+                startTime = pygame.time.get_ticks() / 1000
 
 
     if not isGameOver:
         screen.blit(sky_surf, (0,0))
         screen.blit(ground_surf, (0,300))
-        pygame.draw.rect(screen, '#09bced', score_rect)
-        pygame.draw.rect(screen, '#09bced', score_rect, 14)
-        screen.blit(score_surf, score_rect)
+        display_score()
 
-        # snail
+        ### snail
         snail_rect.x -= snail_speed
         # Reset postion and assign random speed
         if snail_rect.x < -50:
             snail_rect.x = 810
             snail_speed = randint(6, 20)
 
+        # on clossion
         if snail_rect.colliderect(player_rect):
             isGameOver = True
             snail_rect.x = 810
 
         screen.blit(snail_surf, snail_rect)
 
-        # player
+        ### player
         player_gravity += 1
         player_rect.y += player_gravity
 
@@ -79,6 +85,7 @@ while True:
         screen.blit(player_surf, player_rect)
     else:
         screen.fill('Yellow')
+
         pygame.draw.rect(screen, '#09bced', restartBrn_rect)
         pygame.draw.rect(screen, '#09bced', restartBrn_rect, 14)
         screen.blit(restartBtn_surf, restartBrn_rect)
