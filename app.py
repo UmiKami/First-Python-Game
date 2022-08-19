@@ -5,16 +5,17 @@ from sys import exit
 
 def display_score():
     currentTime = pygame.time.get_ticks() / 1000 - startTime
-    score_surf = test_font.render(f'Score: {currentTime:.0f}', True, '#2a0878')
+    score_surf = game_font.render(f'Score: {currentTime:.0f}', True, '#2a0878')
     score_rect = score_surf.get_rect(center=(400, 50))
     screen.blit(score_surf, score_rect)
+    return currentTime
 
 
 pygame.init()
 screen = pygame.display.set_mode((800, 400))
 pygame.display.set_caption("First Python Game")
 clock = pygame.time.Clock()
-test_font = pygame.font.Font('./font/Pixeltype.ttf', 50)
+game_font = pygame.font.Font('./font/Pixeltype.ttf', 50)
 
 sky_surf = pygame.image.load('./graphics/Sky.png').convert_alpha()
 ground_surf = pygame.image.load('./graphics/ground.png').convert_alpha()
@@ -26,14 +27,22 @@ snail_speed = randint(6, 10)
 player_surf = pygame.image.load(
     "./graphics/Player/player_walk_1.png").convert_alpha()
 player_rect = player_surf.get_rect(midbottom=(50, 300))
-
-restartBtn_surf = test_font.render("Restart", True, '#2a0878')
-restartBrn_rect = restartBtn_surf.get_rect(center=(400, 200))
-
 player_gravity = 0
 
-isGameOver = False
+# intro screen
+player_stand = pygame.image.load("./graphics/Player/player_stand.png").convert_alpha()
+player_stand = pygame.transform.rotozoom(player_stand, 0, 2)
+player_stand_rect = player_stand.get_rect(center = (400,200))
+
+game_title = game_font.render('Jumping Maniac', True, '#8FED86')
+game_title_rect = game_title.get_rect(center = (400, 75))
+
+game_message = game_font.render('Press SPACE to start', True, '#00D8AE')
+game_message_rect = game_message.get_rect(center = (400, 350))
+
+isGameOver = True
 startTime = 0
+score = 0
 
 while True:
     for i, event in enumerate(pygame.event.get()):
@@ -48,9 +57,6 @@ while True:
                 if player_rect.collidepoint(event.pos) and player_rect.bottom == 300:
                     player_gravity -= 22 + player_gravity
         else:
-            if event.type == pygame.MOUSEBUTTONDOWN and restartBrn_rect.collidepoint(event.pos) and event.button == 1:
-                isGameOver = False
-                startTime = pygame.time.get_ticks() / 1000
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE: 
                 isGameOver = False
                 startTime = pygame.time.get_ticks() / 1000
@@ -59,7 +65,7 @@ while True:
     if not isGameOver:
         screen.blit(sky_surf, (0,0))
         screen.blit(ground_surf, (0,300))
-        display_score()
+        score = display_score()
 
         ### snail
         snail_rect.x -= snail_speed
@@ -84,11 +90,16 @@ while True:
 
         screen.blit(player_surf, player_rect)
     else:
-        screen.fill('Yellow')
+        score_message = game_font.render(f'Your score: {score:.0f}', True, '#F9F871')
+        score_message_rect = score_message.get_rect(center=(400, 350))
 
-        pygame.draw.rect(screen, '#09bced', restartBrn_rect)
-        pygame.draw.rect(screen, '#09bced', restartBrn_rect, 14)
-        screen.blit(restartBtn_surf, restartBrn_rect)
+        screen.fill('#1a75c9')
+        screen.blit(game_title, game_title_rect)
+        screen.blit(player_stand, player_stand_rect)
+        if score > 0:
+            screen.blit(score_message, score_message_rect)
+        else:
+            screen.blit(game_message, game_message_rect)
 
     pygame.display.update()
     clock.tick(60)
