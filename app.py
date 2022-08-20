@@ -9,6 +9,29 @@ def display_score():
     screen.blit(score_surf, score_rect)
     return currentTime
 
+def obstacle_movement(obstacle_list, speed):
+    if obstacle_list:
+        for i,obstacle_rect in enumerate(obstacle_list):
+            if obstacle_rect.right < 0:
+                obstacle_list.pop(i)
+
+            obstacle_rect.x -= speed
+            if obstacle_rect.bottom == 300:
+                screen.blit(snail_surf, obstacle_rect)
+            else:
+                screen.blit(fly_surf, obstacle_rect)
+
+        return obstacle_list
+    else:
+        return []
+
+def collisions(player, obstacles):
+    if obstacles:
+        for obstacle_rect in obstacles:
+            if player.colliderect(obstacle_rect):
+                return True
+    return False
+
 
 pygame.init()
 screen = pygame.display.set_mode((800, 400))
@@ -21,10 +44,11 @@ ground_surf = pygame.image.load('./graphics/ground.png').convert_alpha()
 
 # Obstacle
 snail_surf = pygame.image.load("./graphics/snail/snail1.png").convert_alpha()
-snail_rect = snail_surf.get_rect(midbottom=(810, 300))
 snail_speed = randint(6, 10)
 
 obstacle_rect_list  = []
+
+fly_surf = pygame.image.load("./graphics/Fly/Fly1.png").convert_alpha()
 
 player_surf = pygame.image.load(
     "./graphics/Player/player_walk_1.png").convert_alpha()
@@ -44,7 +68,7 @@ game_message_rect = game_message.get_rect(center = (400, 350))
 
 # Timer
 obstacle_timer = pygame.USEREVENT + 1
-pygame.time.set_timer(obstacle_timer, 900)
+pygame.time.set_timer(obstacle_timer, 1500)
 
 isGameOver = True
 startTime = 0
@@ -63,7 +87,11 @@ while True:
                 if player_rect.collidepoint(event.pos) and player_rect.bottom == 300:
                     player_gravity -= 22 + player_gravity
             if event.type == obstacle_timer:
-                obstacle_rect_list.append(snail_surf.get_rect(bottomright = (randint(900,1100), 300)))
+                if randint(0,1):
+                    obstacle_rect_list.append(snail_surf.get_rect(bottomright = (randint(900,1100), 300)))
+                else:
+                    obstacle_rect_list.append(fly_surf.get_rect(bottomright = (randint(900,1100), 210)))
+
         else:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE: 
                 isGameOver = False
@@ -75,15 +103,9 @@ while True:
         screen.blit(ground_surf, (0,300))
         score = display_score()
 
-        ### Obstacle
-        
-
-        # on clossion
-        if snail_rect.colliderect(player_rect):
-            isGameOver = True
-            snail_rect.x = 810
-
-        screen.blit(snail_surf, snail_rect)
+        ### Obstacle movement
+        speed = randint(6, 20)
+        obstacle_rect_list = obstacle_movement(obstacle_rect_list, speed)
 
         ### player
         player_gravity += 1
@@ -93,7 +115,11 @@ while True:
             player_rect.bottom = 300
 
         screen.blit(player_surf, player_rect)
+
+        ## Collision
+        isGameOver = collisions(player_rect, obstacle_rect_list)
     else:
+        obstacle_rect_list.clear()
         score_message = game_font.render(f'Your score: {score:.0f}', True, '#F9F871')
         score_message_rect = score_message.get_rect(center=(400, 350))
 
